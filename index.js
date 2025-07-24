@@ -43,6 +43,7 @@ function displayDetails(data) {
     } else { //word was not found in the dictionary, so use the messaging that the API returns
         document.getElementById("placeholder").textContent = data.title;
         document.getElementById("placeholder").classList.add("error");
+        document.getElementById("placeholder").classList.remove("hidden");
     }
 }
 
@@ -60,5 +61,6 @@ document.getElementById("word-lookup").addEventListener("submit", (event) => {
     .catch(error => {
         document.getElementById("placeholder").textContent = error.message;
         document.getElementById("placeholder").classList.add("error");
+        document.getElementById("placeholder").classList.remove("hidden");
     });
 });
