@@ -1,56 +1,61 @@
-function displayDetails(info) {
-    if (Array.isArray(info)) {
+function displayDetails(data) {
+    if (Array.isArray(data)) { //if the API finds the word, it returns an array.  If not, it returns an object.
         document.getElementById("placeholder").classList.add("hidden");
-        const resultsList = document.querySelector("#results");
-        info.forEach(entry => {
+        const resultsContainer = document.querySelector("#lookup-results");
+
+        //For each word searched, the API can return multiple entries, each with its own phonetics information, meanings (which each have a part of speech and list of definitions), and optional synonyms
+        data.forEach(entry => {
             const resultsItem = document.createElement("article");
-            const itemHeading = document.createElement("h3");
-            const itemAudio = document.createElement("audio");
-            itemHeading.textContent = `${entry.word} (${entry.phonetic})`;
-            itemAudio.src = entry.phonetics[0].audio;
-            itemAudio.controls = true;
-            resultsItem.append(itemHeading, itemAudio);
-            const itemMeanings = document.createElement("ol");
+            const resultsItemHeading = document.createElement("h3");
+            const resultsItemAudio = document.createElement("audio");
+            resultsItemHeading.textContent = `${entry.word} (${entry.phonetic})`;
+            resultsItemAudio.src = entry.phonetics[0].audio;
+            resultsItemAudio.controls = true;
+            resultsItem.append(resultsItemHeading, resultsItemAudio);
+            const resultsItemMeanings = document.createElement("ol");
             entry.meanings.forEach((meaning) => {
                 const meaningItem = document.createElement("li");
-                const itemPOS = document.createElement("h4");
-                itemPOS.textContent = meaning.partOfSpeech;
-                const itemDefList = document.createElement("ul");
+                const partOfSpeech = document.createElement("h4");
+                partOfSpeech.textContent = meaning.partOfSpeech;
+                const definitionList = document.createElement("ul");
                 meaning.definitions.forEach((definition) => {
-                    const defItem = document.createElement("li");
-                    defItem.textContent = definition.definition;
-                    itemDefList.append(defItem);
+                    const definitionItem = document.createElement("li");
+                    definitionItem.textContent = definition.definition;
+                    definitionList.append(definitionItem);
                 });
-                let itemSyns;
+                let itemSynonyms;
                 if (meaning.synonyms.length > 0) {
                     const synonyms = meaning.synonyms.join(", ");
-                    itemSyns = document.createElement("p");
-                    itemSyns.innerHTML = `<span>Synonyms:</span> ${synonyms}`;
+                    itemSynonyms = document.createElement("p");
+                    itemSynonyms.innerHTML = `<span>Synonyms:</span> ${synonyms}`;
                 } else {
-                    itemSyns = false;
+                    itemSynonyms = false;
                 }
-                meaningItem.append(itemPOS, itemDefList);
-                if (itemSyns) {
-                    meaningItem.append(itemSyns);
+                meaningItem.append(partOfSpeech, definitionList);
+                if (itemSynonyms) {
+                    meaningItem.append(itemSynonyms);
                 }
-                itemMeanings.append(meaningItem);
+                resultsItemMeanings.append(meaningItem);
             });
-            resultsItem.append(itemMeanings);
-            resultsList.append(resultsItem);
+            resultsItem.append(resultsItemMeanings);
+            resultsContainer.append(resultsItem);
         });
-    } else {
-        document.getElementById("placeholder").textContent = info.title;
+    } else { //word was not found in the dictionary, so use the messaging that the API returns
+        document.getElementById("placeholder").textContent = data.title;
         document.getElementById("placeholder").classList.add("error");
     }
 }
 
+//When Search button is pressed, search Free Dictionary API for the entered word, then process the returned data
 document.getElementById("word-lookup").addEventListener("submit", (event) => {
     event.preventDefault();
+    document.querySelectorAll('#lookup-results article').forEach(el => el.remove()); //clear previous results
+
     const word = document.getElementById("search-word").value;
     fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`)
     .then(response => response.json())
-    .then(info => {
-        displayDetails(info);
+    .then(data => {
+        displayDetails(data);
     })
     .catch(error => {
         document.getElementById("placeholder").textContent = error.message;
